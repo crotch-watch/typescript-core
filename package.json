@@ -1,0 +1,19 @@
+{
+  "name": "typescript-core",
+  "version": "1.0.0",
+  "description": "Learning Typescript from scratch, it's essential features and it's inner workings.",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "pnpm tsc -w"
+  },
+  "keywords": [
+    "typescript"
+  ],
+  "author": "crotch-watch",
+  "license": "MIT",
+  "packageManager": "pnpm@10.6.5",
+  "devDependencies": {
+    "typescript": "5.7.3"
+  }
+}
