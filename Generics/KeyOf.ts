@@ -23,3 +23,11 @@ type PartialPerson<key> = {
   // here key is a generic
   [key in PersonProps]: Person[key]
 }
+
+// key generic is being used to index the type person
+type Age = Person['age']
+
+// types can be used to index object types
+// maybe stricter obj. like Array etc as well
+
+type PersonValues = Person[PersonProps]
