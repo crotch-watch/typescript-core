@@ -1,72 +1,71 @@
-// iter 1: making sure array has at least 1 element with TS only
-// type NonEmptyArray<Type> = [Type, ...Type[]]
-// const array: NonEmptyArray<string> = []
+/**
+ * TYPE-SAFE NON-EMPTY ARRAYS
+ * A journey from runtime checks to type-level guarantees.
+ */
 
-// iter 2: how other array types interact with non-empty
-type NonEmptyArray<Type> = [Type, ...Type[]]
+// --- ITERATION 1: Defining the Constraint ---
+// Uses Variadic Tuple Types to ensure at least one element exists.
+type NonEmptyArray<T> = [T, ...T[]];
 
-const array = [1, 2]
+// Validates at compile time
+const valid: NonEmptyArray<number> = [1];
 
-// passing array literal works as expected
-// head([1, 2])
+// Error: Source has 0 elements
+const invalid: NonEmptyArray<number> = [];
 
-// const array: Array<number> = []
-// using an a generic typed array works as expected
-// headOf(array)
+// --- ITERATION 2: Interacting with Generic Arrays ---
+// Standard Array<T> doesn't track length. We must "bridge" the two.
 
-// const array: Array<string> = []
-// simple casting doesn't work, how to make non-empty from generic
-// const nonEmptyArray =
-// array.length > 0 ? ([...array] as NonEmptyArray<string>) : array
-// headOf(nonEmptyArray)
-
-// if check is fine but one can cast it with if as well
-// if (array.length) headOf(array as NonEmptyArray<string>)
-
-// let nonEmptyArray = array
-// if (nonEmptyArray.length) {
-//   nonEmptyArray as NonEmptyArray<string>
-// NOTE: after casting it reverts to string[]
-//   headOf(nonEmptyArray)
-// }
-
-// if some array exists and it had to conform to NonEmptyArray
-// const array: Array<number> = []
-
-// NOTE: assigning an empty array is any[] and typing it string | number array
-// ensures what goes in it is number | string respectively but
-// it has nothing to check elements in it
-// ex: NonEmptyArray<number> = [array[0]] clearly this'll return undefined
-// but it is accepted by TS
-// for non-empty to be correct this needs to be rectified
-// const nonEmptyArray: NonEmptyArray<number> = [array[0]]
-// headOf([array[0], ...array])
-
-// ISSUE: if an array has numbers ex: [1, 2, 3] it is annotated as Array<number>
-// but if array becomes empty i.e array.length = 0 then should it be any[] ?
-// but if were to be empty and then required to add numbers then
-// ex: some func. was mapping over number array and required number array
-//     how'd it handle the any[] or [] -> never[], what is more precise
-//     can conditional types or something similar be used to handle them
-// ex: as below
-// const fn = (array: number[] | never[]): number[] | never[] => {
-//   if (array.length > 0) {
-//     return array.map((item) => item * 2)
-//   }
-//   return []
-// }
-
-// let's just this is the case but still the NonEmptyArray ? will it be returned at creation or what
-// ex: headOf([1, 2])
-// what if array already exists ex: const arr = [1, 2] but isn't explicitly typed as nonEmpty
-// even if its somehow more type safe is it worth it rather than just returning T | undefined
-
-function elementsIn<Type>(array: Array<Type>): array is NonEmptyArray<Type> {
-    return array.length > 0
+function headOf<T>(array: NonEmptyArray<T>): T {
+  return array[0]; // Guaranteed to be T, not T | undefined
 }
 
-function headOf<Type>(array: NonEmptyArray<Type>): Type {
-    return array[0]
+// A. The Manual Way (Casting)
+// Dangerous if the length check is forgotten or incorrect.
+const rawArray = ["data"];
+
+if (rawArray.length > 0) {
+  headOf(rawArray as NonEmptyArray<string>);
 }
 
-if (elementsIn(array)) headOf(array)
+// B. The idiomatic way (Type Guard)
+// Safely "promotes" a standard array to a NonEmptyArray.
+function hasElements<T>(array: T[]): array is NonEmptyArray<T> {
+  return array.length > 0;
+}
+
+const maybeEmpty = [1, 2, 3];
+
+if (hasElements(maybeEmpty)) headOf(maybeEmpty);
+// TypeScript now treats this as NonEmptyArray
+
+// --- ITERATION 3: The "Unsafe Access" Edge Case ---
+// WARNING: TS doesn't flag index access during initialization.
+// This will technically "pass" the type check but return undefined at runtime.
+const emptySource: number[] = [];
+
+const fakeNonEmpty: NonEmptyArray<number> = [emptySource[0], ...emptySource];
+
+// --- ITERATION 4: Handling Empty States ---
+// When an array is strictly empty, it is better represented as never[] or [].
+const processData = (array: number[] | never[]): number[] | never[] => {
+  // Mapping over never[] correctly returns never[]
+  return array.length > 0 ? array.map((n) => n * 2) : [];
+};
+
+// --- FINAL VERDICT: Is it worth the complexity? ---
+/*
+ * PROS:
+ * - Eliminates repetitive "if (item)" checks in deep logic.
+ * - Self-documenting: The function signature enforces the requirement.
+ * * CONS:
+ * - Standard APIs return T[], requiring "hasElements" checks at the boundaries.
+ * T | undefined is often simpler for general utilities.
+ */
+
+// Example usage of the Type Guard pattern:
+const data = [10, 20];
+
+if (hasElements(data)) {
+  console.log(`The head is: ${headOf(data)}`);
+}
