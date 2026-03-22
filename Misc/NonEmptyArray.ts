@@ -5,13 +5,16 @@
 
 // --- ITERATION 1: Defining the Constraint ---
 // Uses Variadic Tuple Types to ensure at least one element exists.
-type NonEmptyArray<T> = [T, ...T[]];
+// readonly modifier eliminates pop, push and mutating methods
+// without readonly array.pop makes type inaccurate.
+// readonly also works well with declarative functional approaches.
+type NonEmptyArray<T> = readonly [T, ...T[]];
 
 // Validates at compile time
 const valid: NonEmptyArray<number> = [1];
 
 // Error: Source has 0 elements
-const invalid: NonEmptyArray<number> = [];
+// const invalid: NonEmptyArray<number> = [];
 
 // --- ITERATION 2: Interacting with Generic Arrays ---
 // Standard Array<T> doesn't track length. We must "bridge" the two.
@@ -30,7 +33,7 @@ if (rawArray.length > 0) {
 
 // B. The idiomatic way (Type Guard)
 // Safely "promotes" a standard array to a NonEmptyArray.
-function hasElements<T>(array: T[]): array is NonEmptyArray<T> {
+function hasElements<T>(array: ReadonlyArray<T>): array is NonEmptyArray<T> {
   return array.length > 0;
 }
 
