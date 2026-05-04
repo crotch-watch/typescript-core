@@ -84,7 +84,7 @@ export function reduce<T, U>(
 
 type Primitives = string | number | bigint | boolean
 
-type PrimitiveList<T> = T extends Primitives ? NonEmptyList<T> : never
+type PrimitiveList<T extends Primitives> = NonEmptyList<T>
 
 function includes<T extends Primitives>(
   array: PrimitiveList<T>,
