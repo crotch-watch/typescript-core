@@ -26,3 +26,58 @@ const array: NonEmptyList<number> = [1, 2]
 const fallback: number = 0
 
 getHeadOf({ array, fallback })
+
+type ListPredicate<T> = (item: NonNullable<T>, index: number) => boolean
+
+export function filter<T>(
+  array: NonEmptyList<T>,
+  predicate: ListPredicate<T>
+): List<T> {
+  const result: NonNullable<T>[] = []
+  let index = 0
+
+  for (const item of array) {
+    if (predicate(item, index)) result.push(item)
+
+    index++
+  }
+
+  return result as unknown as List<T>
+}
+
+export function map<T, U>(
+  array: NonEmptyList<T>,
+  callback: (item: NonNullable<T>, index: number) => NonNullable<U>
+): NonEmptyList<U> {
+  const result: NonNullable<U>[] = []
+  let index = 0
+
+  for (const item of array) {
+    result.push(callback(item, index))
+    index++
+  }
+
+  return result as unknown as NonEmptyList<U>
+}
+
+export function reduce<T, U>(
+  array: NonEmptyList<T>,
+  callback: (
+    previous: NonNullable<U>,
+    current: NonNullable<T>,
+    index: number
+  ) => NonNullable<U>,
+  initial: NonNullable<U>
+): NonNullable<U> {
+  let accumulator: NonNullable<U> = initial
+  // what if T/initial is an object ?
+  let index = 0
+
+  for (const item of array) {
+    accumulator = callback(accumulator, item, index)
+
+    index++
+  }
+
+  return accumulator
+}
