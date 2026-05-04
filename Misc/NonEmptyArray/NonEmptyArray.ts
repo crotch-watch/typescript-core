@@ -81,3 +81,46 @@ export function reduce<T, U>(
 
   return accumulator
 }
+
+type Primitives = string | number | bigint | boolean
+
+type PrimitiveList<T> = T extends Primitives ? NonEmptyList<T> : never
+
+function includes<T extends Primitives>(
+  array: PrimitiveList<T>,
+  query: T
+): boolean {
+  for (const item of array) {
+    if (item === query) return true
+  }
+
+  return false
+}
+
+function findIndex<T>(
+  array: NonEmptyList<T>,
+  predicate: ListPredicate<T>
+): number {
+  let index = 0
+
+  for (const item of array) {
+    if (predicate(item, index)) return index
+    else index++
+  }
+
+  return -1
+}
+
+function every<T>(
+  array: NonEmptyList<T>,
+  predicate: ListPredicate<T>
+): boolean {
+  let index = 0
+
+  for (const item of array) {
+    if (!predicate(item, index)) return false
+    else index++
+  }
+
+  return true
+}
